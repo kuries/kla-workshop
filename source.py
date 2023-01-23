@@ -169,7 +169,7 @@ class Source:
             scaling_factors = set()
             
             for index in range(len(polygon.sides)):
-                scale = self.get_scale(polygon.sides[index], polygon.sides[index])
+                scale = self.get_scale(template.sides[index], polygon.sides[index])
                 scaling_factors.add(scale)
                 if polygon.sides[index] != shifted_sides[index]:
                     is_a_rotated_template = False
@@ -178,7 +178,7 @@ class Source:
                 return True
 
             scaling_factors = list(scaling_factors)
-            if len(scaling_factors) == 1 and scaling_factors[0] == int(scaling_factors[0]):
+            if len(scaling_factors) == 1:
                 return True
 
         return False
