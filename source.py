@@ -131,14 +131,7 @@ class Source:
                     curr_polygon.add_coord(x, y)
                     index += 2
     
-    def compare_polygons(self, template: Polygon, polygon: Polygon) -> bool:
-        if template.layer != polygon.layer:
-            return False
-
-        if template.count != polygon.count:
-            return False
-
-        # Translate the points
+    def compare_polygons_with_translation(self, template: Polygon, polygon: Polygon) -> bool:
         for ref in range(polygon.count):
             is_a_translated_template = True
 
@@ -156,8 +149,9 @@ class Source:
 
             if is_a_translated_template:
                 return True
+        return False
 
-        # Compare the sides
+    def compare_polygons_with_rotation(self, template: Polygon, polygon: Polygon) -> bool:
         for shift in range(len(polygon.sides)):
             is_a_rotated_template = True
             shifted_sides = template.sides[shift:].copy()
@@ -173,11 +167,33 @@ class Source:
 
         return False
     
+    def compare_polygons(self, template: Polygon, polygon: Polygon) -> bool:
+        if template.layer != polygon.layer:
+            return False
+
+        if template.count != polygon.count:
+            return False
+
+        # Translate the points
+        if self.compare_polygons_with_translation(template, polygon):
+            return True
+
+        # Compare the sides
+        if self.compare_polygons_with_rotation(template, polygon):
+            return True
+
+        return False
+    
     def identify_polygons(self):
         for polygon in self.polygons:
-            for template in self.template_polygons:
+            if len(self.template_polygons) == 1:
+                template = self.template_polygons[0]
                 if self.compare_polygons(template, polygon):
                     self.accepted_polygons.add(polygon)
+            else:
+                template_1, template_2 = self.template_polygons
+                dx = template_1.coord[0][0] - template_2.coord[0][0]
+                dy = template_1.coord[0][1] - template_2.coord[0][1]
 
         print(len(self.accepted_polygons))
                 

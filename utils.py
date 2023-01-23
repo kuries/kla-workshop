@@ -4,6 +4,8 @@ INPUT_1 = "Milestone 1"
 INPUT_2 = "Milestone 2"
 INPUT_3 = "Milestone 3"
 INPUT_4 = "Milestone 4"
+INPUT_5 = "Milestone 5"
+INPUT_6 = "Milestone 6"
 
 input_directory = Path('.\me\Milestone_Input\Milestone_Input')
 output_directory = Path('.\me\Milestone_Output')
@@ -22,6 +24,10 @@ def get_directory_path(input=True, milestone_number=1):
         new_path = (directory / INPUT_3)
     elif milestone_number == 4:
         new_path = (directory / INPUT_4)
+    elif milestone_number == 5:
+        new_path = (directory / INPUT_5)
+    elif milestone_number == 6:
+        new_path = (directory / INPUT_6)
     return new_path
 
 def get_source(directory_path: Path):
