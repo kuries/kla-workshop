@@ -132,6 +132,12 @@ class Source:
                     index += 2
     
     def compare_polygons(self, template: Polygon, polygon: Polygon) -> bool:
+        if template.layer != polygon.layer:
+            return False
+
+        if template.count != polygon.count:
+            return False
+
         # Translate the points
         for ref in range(polygon.count):
             is_a_translated_template = True
@@ -170,14 +176,8 @@ class Source:
     def identify_polygons(self):
         for polygon in self.polygons:
             for template in self.template_polygons:
-                if template.layer != polygon.layer:
-                    continue
-
-                if template.count != polygon.count:
-                    continue
-                
                 if self.compare_polygons(template, polygon):
                     self.accepted_polygons.add(polygon)
-                    
+
         print(len(self.accepted_polygons))
                 
