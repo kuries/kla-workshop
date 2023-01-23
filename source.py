@@ -34,8 +34,6 @@ class Source:
         self.template_polygons: List[Polygon] = []
         self.accepted_polygons = set()
 
-        self.cached_polgons = dict()
-
     def read_source_file(self):
         with open(self.file_path, 'r') as reader:
             for i in range(self.HEADER_SIZE):
@@ -117,7 +115,6 @@ class Source:
                 curr_polygon = Polygon()
             elif line == 'endel':
                 curr_polygon.find_sides()
-                self.cached_polgons[frozenset(curr_polygon.coord)] = curr_polygon
                 self.polygons.append(curr_polygon)
             elif line.startswith('layer'):
                 vals = line.split()
