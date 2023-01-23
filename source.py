@@ -131,45 +131,53 @@ class Source:
                     curr_polygon.add_coord(x, y)
                     index += 2
     
+    def compare_polygons(self, template: Polygon, polygon: Polygon) -> bool:
+        # Translate the points
+        for ref in range(polygon.count):
+            is_a_translated_template = True
+
+            dx, dy = polygon.coord[ref][0] - template.coord[0][0], polygon.coord[ref][1] - template.coord[0][1]
+            
+            for index in range(template.count):
+                tx, ty = template.coord[index]
+                coord = polygon.coord[index]
+
+                newx, newy = coord[0]-dx, coord[1]-dy
+                
+                if newx != tx or newy != ty:
+                    is_a_translated_template = False
+                    break
+
+            if is_a_translated_template:
+                return True
+
+        # Compare the sides
+        for shift in range(len(polygon.sides)):
+            is_a_rotated_template = True
+            shifted_sides = template.sides[shift:].copy()
+            shifted_sides.extend(template.sides[: shift])
+            
+            for index in range(len(polygon.sides)):
+                if polygon.sides[index] != shifted_sides[index]:
+                    is_a_rotated_template = False
+                    break
+            
+            if is_a_rotated_template:
+                return True
+
+        return False
+    
     def identify_polygons(self):
-        for template in self.template_polygons:
-            for polygon in self.polygons:
+        for polygon in self.polygons:
+            for template in self.template_polygons:
                 if template.layer != polygon.layer:
                     continue
 
                 if template.count != polygon.count:
                     continue
                 
-                # Translate the points
-                for ref in range(polygon.count):
-                    is_a_template = True
-
-                    dx, dy = polygon.coord[ref][0] - template.coord[0][0], polygon.coord[ref][1] - template.coord[0][1]
+                if self.compare_polygons(template, polygon):
+                    self.accepted_polygons.add(polygon)
                     
-                    for index in range(template.count):
-                        tx, ty = template.coord[index]
-                        coord = polygon.coord[index]
-
-                        newx, newy = coord[0]-dx, coord[1]-dy
-                        
-                        if newx != tx or newy != ty:
-                            is_a_template = False
-                            break
-
-                    if is_a_template:
-                        self.accepted_polygons.add(polygon)
-                        break
-
-                # Compare the sides
-                for shift in range(len(polygon.sides)):
-                    is_a_template = True
-                    shifted_sides = template.sides[shift:].copy()
-                    shifted_sides.extend(template.sides[: shift])
-                    
-                    for index in range(len(polygon.sides)):
-                        if polygon.sides[index] != shifted_sides[index]:
-                            is_a_template = False
-                            break
-                    
-                    if is_a_template:
-                        self.accepted_polygons.add(polygon)
+        print(len(self.accepted_polygons))
+                
