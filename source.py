@@ -69,7 +69,7 @@ class Source:
 
             for line in self.footer:
                 writer.write(line)
-        print("Done", self.output_path.exists(), self.output_path)
+        print("Done")
     
     def load_template(self):
         body = []
