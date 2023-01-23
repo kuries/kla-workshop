@@ -200,16 +200,15 @@ class Source:
 
         return False
     
-    def identify_second_polygon(self, first_polygon: Polygon, dx, dy):
+    def identify_second_polygon(self, first_polygon: Polygon, diff):
         coords = []
         for index in range(first_polygon.count):
             cx, cy = first_polygon.coord[index]
-            coords.append(tuple([cx - dx, cy - dy]))
-        
-        coords = frozenset(coords)
-        
-        if coords in self.cached_polgons:
-            return self.cached_polgons[coords]
+            coords.append(tuple([cx - diff[index][0], cy - diff[index][1]]))
+
+        for polygon in self.polygons:
+            if coords == polygon.coord:
+                return polygon
         return None
     
     def identify_polygons(self):
@@ -220,11 +219,15 @@ class Source:
                     self.accepted_polygons.add(polygon)
             else:
                 template_1, template_2 = self.template_polygons
-                dx = template_1.coord[0][0] - template_2.coord[0][0]
-                dy = template_1.coord[0][1] - template_2.coord[0][1]
+
+                diff = []
+                for i in range(template_1.count):
+                    dx = template_1.coord[i][0] - template_2.coord[i][0]
+                    dy = template_1.coord[i][1] - template_2.coord[i][1]
+                    diff.append(tuple([dx, dy]))
 
                 if self.compare_polygons(template=template_1, polygon=polygon):
-                    second_polygon = self.identify_second_polygon(polygon, dx, dy)
+                    second_polygon = self.identify_second_polygon(polygon, diff)
                     if second_polygon is not None:
                         self.accepted_polygons.add(polygon)
                         self.accepted_polygons.add(second_polygon)
