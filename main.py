@@ -4,9 +4,9 @@ from utils import get_directory_path, get_source
 from source import Source
 
 if __name__ == '__main__':
-    input_path = get_directory_path(input=True, milestone_number=4)
+    input_path = get_directory_path(input=True, milestone_number=7)
 
-    output_path = get_directory_path(input=False, milestone_number=4)
+    output_path = get_directory_path(input=False, milestone_number=7)
 
     s = Source(input_path, output_path)
     s.read_source_file()

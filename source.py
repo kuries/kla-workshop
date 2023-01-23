@@ -207,7 +207,7 @@ class Source:
             coords.append(tuple([cx - diff[index][0], cy - diff[index][1]]))
 
         for polygon in self.polygons:
-            if coords == polygon.coord:
+            if coords == polygon.coord and polygon.layer != first_polygon.layer:
                 return polygon
         return None
     
