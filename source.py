@@ -26,7 +26,7 @@ class Source:
 
         self.polygons: List[Polygon] = []
         self.template_polygons: List[Polygon] = []
-        self.accepted_polygons: List[Polygon] = []
+        self.accepted_polygons = set()
 
     def read_source_file(self):
         with open(self.file_path, 'r') as reader:
@@ -124,27 +124,29 @@ class Source:
                     index += 2
     
     def identify_polygons(self):
-        template = self.template_polygons[0]
+        for template in self.template_polygons:
+            for polygon in self.polygons:
+                if template.layer != polygon.layer:
+                    continue
 
-        for polygon in self.polygons:
-            if template.layer != polygon.layer:
-                continue
-
-            if template.count != polygon.count:
-                continue
-            
-            is_a_template = True
-            dx, dy = polygon.coord[0][0] - template.coord[0][0], polygon.coord[0][1] - template.coord[0][1]
-            
-            for index in range(1, template.count):
-                tx, ty = template.coord[index]
-                coord = polygon.coord[index]
-
-                newx, newy = coord[0]-dx, coord[1]-dy
+                if template.count != polygon.count:
+                    continue
                 
-                if newx != tx or newy != ty:
-                    is_a_template = False
-                    break
+                for ref in range(template.count):
+                    is_a_template = True
 
-            if is_a_template:
-                self.accepted_polygons.append(polygon)
+                    dx, dy = polygon.coord[ref][0] - template.coord[0][0], polygon.coord[ref][1] - template.coord[0][1]
+                    
+                    for index in range(template.count):
+                        tx, ty = template.coord[index]
+                        coord = polygon.coord[index]
+
+                        newx, newy = coord[0]-dx, coord[1]-dy
+                        
+                        if newx != tx or newy != ty:
+                            is_a_template = False
+                            break
+
+                    if is_a_template:
+                        self.accepted_polygons.add(polygon)
+                        break
