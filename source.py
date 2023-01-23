@@ -34,6 +34,8 @@ class Source:
         self.template_polygons: List[Polygon] = []
         self.accepted_polygons = set()
 
+        self.cached_polgons = dict()
+
     def read_source_file(self):
         with open(self.file_path, 'r') as reader:
             for i in range(self.HEADER_SIZE):
@@ -115,6 +117,7 @@ class Source:
                 curr_polygon = Polygon()
             elif line == 'endel':
                 curr_polygon.find_sides()
+                self.cached_polgons[frozenset(curr_polygon.coord)] = curr_polygon
                 self.polygons.append(curr_polygon)
             elif line.startswith('layer'):
                 vals = line.split()
@@ -150,19 +153,32 @@ class Source:
             if is_a_translated_template:
                 return True
         return False
+    
+    def get_scale(self, a, b):
+        if a>b:
+            return a/b
+        else:
+            return b/a
 
     def compare_polygons_with_rotation(self, template: Polygon, polygon: Polygon) -> bool:
         for shift in range(len(polygon.sides)):
             is_a_rotated_template = True
             shifted_sides = template.sides[shift:].copy()
             shifted_sides.extend(template.sides[: shift])
+
+            scaling_factors = set()
             
             for index in range(len(polygon.sides)):
+                scale = self.get_scale(polygon.sides[index], polygon.sides[index])
+                scaling_factors.add(scale)
                 if polygon.sides[index] != shifted_sides[index]:
                     is_a_rotated_template = False
-                    break
             
             if is_a_rotated_template:
+                return True
+
+            scaling_factors = list(scaling_factors)
+            if len(scaling_factors) == 1 and scaling_factors[0] == int(scaling_factors[0]):
                 return True
 
         return False
@@ -184,6 +200,18 @@ class Source:
 
         return False
     
+    def identify_second_polygon(self, first_polygon: Polygon, dx, dy):
+        coords = []
+        for index in range(first_polygon.count):
+            cx, cy = first_polygon.coord[index]
+            coords.append(tuple([cx - dx, cy - dy]))
+        
+        coords = frozenset(coords)
+        
+        if coords in self.cached_polgons:
+            return self.cached_polgons[coords]
+        return None
+    
     def identify_polygons(self):
         for polygon in self.polygons:
             if len(self.template_polygons) == 1:
@@ -194,6 +222,12 @@ class Source:
                 template_1, template_2 = self.template_polygons
                 dx = template_1.coord[0][0] - template_2.coord[0][0]
                 dy = template_1.coord[0][1] - template_2.coord[0][1]
+
+                if self.compare_polygons(template=template_1, polygon=polygon):
+                    second_polygon = self.identify_second_polygon(polygon, dx, dy)
+                    if second_polygon is not None:
+                        self.accepted_polygons.add(polygon)
+                        self.accepted_polygons.add(second_polygon)
 
         print(len(self.accepted_polygons))
                 
