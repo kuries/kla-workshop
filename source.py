@@ -1,17 +1,23 @@
 from pathlib import Path
 from typing import List
+from math import dist
 
 class Polygon:
     def __init__(self):
         self.layer = None
         self.count = 0
         self.coord = []
+        self.sides = []
     
     def set_layer(self, layer: int):
         self.layer = layer
 
     def add_coord(self, x: int, y: int):
         self.coord.append(tuple([x, y]))
+    
+    def find_sides(self):
+        for i in range(1, self.count):
+            self.sides.append(dist(self.coord[i-1], self.coord[i]))
 
 class Source:
     def __init__(self, file_path: Path, output_path: Path) -> None:
@@ -84,6 +90,7 @@ class Source:
             if line == 'boundary':
                 curr_polygon = Polygon()
             elif line == 'endel':
+                curr_polygon.find_sides()
                 self.template_polygons.append(curr_polygon)
             elif line.startswith('layer'):
                 vals = line.split()
@@ -107,6 +114,7 @@ class Source:
             if line == 'boundary':
                 curr_polygon = Polygon()
             elif line == 'endel':
+                curr_polygon.find_sides()
                 self.polygons.append(curr_polygon)
             elif line.startswith('layer'):
                 vals = line.split()
@@ -132,7 +140,8 @@ class Source:
                 if template.count != polygon.count:
                     continue
                 
-                for ref in range(template.count):
+                # Translate the points
+                for ref in range(polygon.count):
                     is_a_template = True
 
                     dx, dy = polygon.coord[ref][0] - template.coord[0][0], polygon.coord[ref][1] - template.coord[0][1]
@@ -150,3 +159,17 @@ class Source:
                     if is_a_template:
                         self.accepted_polygons.add(polygon)
                         break
+
+                # Compare the sides
+                for shift in range(len(polygon.sides)):
+                    is_a_template = True
+                    shifted_sides = template.sides[shift:].copy()
+                    shifted_sides.extend(template.sides[: shift])
+                    
+                    for index in range(len(polygon.sides)):
+                        if polygon.sides[index] != shifted_sides[index]:
+                            is_a_template = False
+                            break
+                    
+                    if is_a_template:
+                        self.accepted_polygons.add(polygon)
